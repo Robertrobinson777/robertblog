@@ -1,0 +1,235 @@
+<html>
+<head>
+    <title>main.dart</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <style type="text/css">
+.s0 { color: #000000;}
+.s1 { color: #008000; font-weight: bold;}
+.s2 { color: #000080; font-weight: bold;}
+.s3 { color: #808080; font-style: italic;}
+.s4 { color: #0000ff;}
+
+
+
+
+
+
+
+
+
+    </style>
+</head>
+<body bgcolor="#ffffff">
+<table BGCOLOR="#c0c0c0" CELLPADDING=5 CELLSPACING=0 COLS=1 WIDTH="100%">
+    <tr>
+        <td>
+            <center>
+                <font color="#000000" face="Arial, Helvetica">
+                    main.dart</font>
+            </center>
+        </td>
+    </tr>
+</table>
+<pre>import <span class="s1">'dart:async'</span>;
+import <span class="s1">'dart:convert'</span>;
+
+import <span class="s1">'package:flutter/material.dart'</span>;
+import <span class="s1">'package:http/http.dart' </span>as http;
+import <span class="s1">'package:transparent_image/transparent_image.dart'</span>;
+
+import <span class="s1">'page.dart'</span>;
+import <span class="s1">'postdetail.dart'</span>;
+
+<span class="s2">void </span>main() =&gt; runApp(MyApp());
+
+<span class="s2">class </span>MyApp <span class="s2">extends </span>StatelessWidget {
+  <span class="s3">// This widget is the root of your application.</span>
+  @override
+  Widget build(BuildContext context) {
+    <span class="s2">return </span>MaterialApp(
+      home: MyHomePage(),
+    );
+  }
+}
+
+<span class="s2">class </span>MyHomePage <span class="s2">extends </span>StatefulWidget {
+  @override
+  _MyHomePageState createState() =&gt; _MyHomePageState();
+}
+
+<span class="s2">class </span>DrawerItem {
+  String title;
+  IconData icon;
+
+  DrawerItem(<span class="s2">this</span>.title, <span class="s2">this</span>.icon);
+}
+
+<span class="s2">class </span>_MyHomePageState <span class="s2">extends </span>State&lt;MyHomePage&gt; {
+  <span class="s3">// Base URL for our wordpress API</span>
+  <span class="s2">final </span>String apiUrl = <span class="s1">&quot;http://reputetech.com/demo/wp-json/wp/v2/&quot;</span>;
+
+  <span class="s3">// Empty list for our posts</span>
+  List posts;
+  List pages;
+
+  <span class="s3">// Function to fetch list of posts</span>
+  Future&lt;String&gt; getPosts() async {
+    <span class="s2">var </span>res = await http.get(Uri.encodeFull(apiUrl + <span class="s1">&quot;posts?_embed&quot;</span>),
+        headers: {<span class="s1">&quot;Accept&quot;</span>: <span class="s1">&quot;application/json&quot;</span>});
+
+    <span class="s3">// fill our posts list with results and update state</span>
+    setState(() {
+      <span class="s2">var </span>resBody = json.decode(res.body);
+      posts = resBody;
+    });
+
+    <span class="s2">return </span><span class="s1">&quot;Success!&quot;</span>;
+  }
+
+  Future&lt;String&gt; getPages() async {
+    <span class="s2">var </span>pageres = await http.get(Uri.encodeFull(apiUrl + <span class="s1">&quot;pages&quot;</span>),
+        headers: {<span class="s1">&quot;Accept&quot;</span>: <span class="s1">&quot;application/json&quot;</span>});
+
+    setState(() {
+      <span class="s2">var </span>resPageBody = json.decode(pageres.body);
+      pages = resPageBody;
+    });
+  }
+
+  @override
+  <span class="s2">void </span>initState() {
+    <span class="s2">super</span>.initState();
+    <span class="s2">this</span>.getPosts();
+    <span class="s2">this</span>.getPages();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    <span class="s2">if </span>(pages == <span class="s2">null </span>|| posts == <span class="s2">null</span>) {
+      <span class="s2">return new </span>Scaffold(
+        appBar: <span class="s2">new </span>AppBar(
+            title: Text(<span class="s1">&quot;Repute&quot;</span>), backgroundColor: Colors.redAccent),
+        body: CircularProgressIndicator(),
+      );
+    } <span class="s2">else </span>{
+      List&lt;Widget&gt; drawerOptions = [];
+      <span class="s2">for </span>(<span class="s2">var </span>i = <span class="s4">0</span>; i &lt; pages.length; i++) {
+<span class="s3">//      var d = drawerItems[i];</span>
+        drawerOptions.add(<span class="s2">new </span>ListTile(
+<span class="s3">//        leading: new Icon(d.icon),</span>
+          title: <span class="s2">new </span>Text(
+            <span class="s3">//d.title,</span>
+            pages[i][<span class="s1">&quot;title&quot;</span>][<span class="s1">&quot;rendered&quot;</span>],
+            style: <span class="s2">new </span>TextStyle(fontSize: <span class="s4">18.0</span>, fontWeight: FontWeight.w400),
+          ),
+<span class="s3">//        selected: i == _selectedIndex,</span>
+          onTap: () {
+            Navigator.push(
+              context,
+              <span class="s2">new </span>MaterialPageRoute(
+                builder: (context) =&gt; <span class="s2">new </span>WebViewExample(url: pages[i]),
+              ),
+            );
+          },
+        ));
+      }
+
+      <span class="s2">return </span>Scaffold(
+        appBar:
+            AppBar(title: Text(<span class="s1">&quot;Repute&quot;</span>), backgroundColor: Colors.redAccent),
+        drawer: <span class="s2">new </span>Drawer(
+            child: <span class="s2">new </span>Column(
+          children: &lt;Widget&gt;[
+            <span class="s2">new </span>UserAccountsDrawerHeader(
+              decoration: BoxDecoration(color: Colors.redAccent),
+              accountName: <span class="s2">new </span>Text(<span class="s1">'Repute'</span>),
+<span class="s3">//                accountEmail: new Text('testemail@test.com'),</span>
+              currentAccountPicture: <span class="s2">new </span>CircleAvatar(
+                backgroundColor: Colors.white,
+                backgroundImage: <span class="s2">new </span>NetworkImage(
+                    <span class="s1">'http://reputetech.com/demo/wp-content/uploads/2019/01/icon.png'</span>),
+              ),
+            ),
+            <span class="s2">new </span>Column(children: drawerOptions),
+<span class="s3">//        new Column( children: &lt;Widget&gt;[</span>
+//        ListView.builder(
+//                  itemCount: posts == null ? 0 : posts.length,
+//    itemBuilder: (context, index) {
+//
+//                    new ListTile(
+//                    title: new Text('Second Menu Item'),
+//      onTap: () {
+//      Navigator.push(context,
+//      new MaterialPageRoute(builder: (context) =&gt; new WebViewExample()),);
+//      },
+//      );
+////      new Divider();
+//    },
+//    ),
+//        ], ),
+          ],
+        )),
+        body: ListView.builder(
+          itemCount: posts == <span class="s2">null </span>? <span class="s4">0 </span>: posts.length,
+          itemBuilder: (BuildContext context, int index) {
+            <span class="s2">return </span>Column(
+              children: &lt;Widget&gt;[
+                Card(
+                  child: Column(
+                    children: &lt;Widget&gt;[
+                      <span class="s2">new </span>FadeInImage.memoryNetwork(
+                        placeholder: kTransparentImage,
+                        image: posts[index][<span
+            class="s1">&quot;featured_media&quot;</span>] == <span class="s4">0</span>
+                            ? <span class="s1">'images/placeholder.png'</span>
+                            : posts[index][<span class="s1">&quot;_embedded&quot;</span>][<span
+            class="s1">&quot;wp:featuredmedia&quot;</span>][<span class="s4">0</span>]
+                                [<span class="s1">&quot;source_url&quot;</span>],
+                      ),
+                      <span class="s2">new </span>Padding(
+                          padding: EdgeInsets.all(<span class="s4">10.0</span>),
+                          child: <span class="s2">new </span>ListTile(
+                            title: <span class="s2">new </span>Padding(
+                                padding: EdgeInsets.symmetric(vertical: <span class="s4">10.0</span>),
+                                child: <span class="s2">new </span>Text(
+                                    posts[index][<span class="s1">&quot;title&quot;</span>][<span
+            class="s1">&quot;rendered&quot;</span>])),
+                            subtitle: <span class="s2">new </span>Text(posts[index][<span
+            class="s1">&quot;excerpt&quot;</span>]
+                                    [<span class="s1">&quot;rendered&quot;</span>]
+                                .replaceAll(<span class="s2">new </span>RegExp(<span class="s1">r'&lt;[^&gt;]*&gt;'</span>), <span
+            class="s1">''</span>)),
+                          )),
+                      <span class="s2">new </span>ButtonTheme.bar(
+                        child: <span class="s2">new </span>ButtonBar(
+                          children: &lt;Widget&gt;[
+                            <span class="s2">new </span>FlatButton(
+                              child: <span class="s2">const </span>Text(<span
+            class="s1">'READ MORE'</span>),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  <span class="s2">new </span>MaterialPageRoute(
+                                    builder: (context) =&gt;
+                                        <span class="s2">new </span>ReputePost(post: posts[index]),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              ],
+            );
+          },
+        ),
+      );
+    }
+  }
+}
+</pre>
+</body>
+</html>
